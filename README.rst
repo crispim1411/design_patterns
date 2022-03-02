@@ -3,7 +3,8 @@ Padrões de Projeto
 Estudo de Design Patterns em Rust
 
 Observer
-.. figure:: observer-uml.png
+---------
+.. figure:: UML/observer-uml.png
 
 
 Considerações
