@@ -2,24 +2,24 @@ use std::rc::Rc;
 use std::rc::Weak;
 use observer::{Observer, Subject};
 
-pub struct User {
-    pub name: String,
-    pub email: String
+struct User {
+    name: String,
+    email: String
 }
 
 impl Observer for User {
     fn notify(&self, event: &String) {
-        println!("{} recebeu: {}", self.name, event);
+        println!("{} recebeu: {}\n", self.name, event);
     }
 }
 
-pub struct Event {
-    pub subject: String,
-    pub subscribers: Vec<Weak<dyn Observer>>
+struct Event {
+    subject: String,
+    subscribers: Vec<Weak<dyn Observer>>
 }
 
 impl Event {
-    pub fn new(subject: String) -> Event {
+    fn new(subject: String) -> Event {
         Event {
             subject,
             subscribers: vec![]
@@ -28,65 +28,120 @@ impl Event {
 }
 
 impl Subject for Event {
-    fn register(&mut self, observer: &Rc<dyn Observer>) {
-        self.subscribers.push(Rc::downgrade(observer));
+    fn register(&mut self, observer: Weak<dyn Observer>) {
+        self.subscribers.push(observer);
     }
 
-    fn unregister(&mut self, observer: Rc<dyn Observer>) {
-        drop(observer)
+    fn unregister(&mut self, observer: &Rc<dyn Observer>) {
+        if let Some(index) = self.subscribers.iter().position(|item| {
+            let item = item.upgrade().unwrap();
+            Rc::ptr_eq(&observer, &item)
+        }) 
+        {
+            self.subscribers.remove(index);
+        }
     }
 
     fn post_event(&self, data: String) {
-        for subscriber in &self.subscribers {
-            if let Some(subscriber) = subscriber.upgrade() {
-                subscriber.notify(&data);
+        match self.subscribers.len() {
+            0 => println!("Não há estudantes cadastrados em {}\n", self.subject),
+            _ => {
+                for subscriber in &self.subscribers {
+                    if let Some(subscriber) = subscriber.upgrade() {
+                        subscriber.notify(&data);
+                    }
+                }
             }
         }
     }
 }
 
 fn main() {
-    // creation
+    // creating users
     let (user1, user2, user3, user4) = 
     (
         User {
-            name: String::from("Jorginaldo"),
+            name: String::from("Jorginaldo (Engenharia)"),
             email: String::from("jorjis@email.com"),
         },
         User {
-            name: String::from("Astrogilda"),
+            name: String::from("Astrogilda (História)"),
             email: String::from("astro@email.com"),
         },
         User {
-            name: String::from("Margorete"),
+            name: String::from("Margorete (Geologia)"),
             email: String::from("margo@email.com"),
         },
         User {
-            name: String::from("Rita"),
+            name: String::from("Rita (Medicina)"),
             email: String::from("ritalee@email.com"),
         }
     );
-    
+    // references
     let rc_user1: Rc<dyn Observer> = Rc::new(user1);
     let rc_user2: Rc<dyn Observer> = Rc::new(user2);
     let rc_user3: Rc<dyn Observer> = Rc::new(user3);
     let rc_user4: Rc<dyn Observer> = Rc::new(user4);
-
-    let mut event = Event::new(String::from("Aula de química"));
-
+    // events
+    let mut quim_event = Event::new(String::from("Química"));
+    let mut bio_event = Event::new(String::from("Biologia"));
+    let mut mat_event = Event::new(String::from("Matemática"));
+    let mut fis_event = Event::new(String::from("Física"));
+    let mut geo_event = Event::new(String::from("Geografia"));
+    let mut hist_event = Event::new(String::from("História"));
+    let mut lib_event = Event::new(String::from("Libras"));
+    
     //subscribing
-    event.register(&rc_user1);
-    event.register(&rc_user2);
-    event.register(&rc_user3);
-    event.register(&rc_user4);
+    //estudante 1 inscrito em Química, Física, Matemática e Libras
+    quim_event.register(Rc::downgrade(&rc_user1));
+    fis_event.register(Rc::downgrade(&rc_user1));
+    mat_event.register(Rc::downgrade(&rc_user1));
+    lib_event.register(Rc::downgrade(&rc_user1));
+
+    //estudante 2 inscrito em Geografia, História e Libras
+    geo_event.register(Rc::downgrade(&rc_user2));
+    hist_event.register(Rc::downgrade(&rc_user2));
+    lib_event.register(Rc::downgrade(&rc_user2));
+
+    //estudante 3 inscrito em Matemática, Geografia e Libras
+    mat_event.register(Rc::downgrade(&rc_user3));
+    geo_event.register(Rc::downgrade(&rc_user3));
+    lib_event.register(Rc::downgrade(&rc_user3));
+
+    //estudante 4 inscrito em Biologia, Química e Libras
+    bio_event.register(Rc::downgrade(&rc_user4));
+    quim_event.register(Rc::downgrade(&rc_user4));
+    lib_event.register(Rc::downgrade(&rc_user4));
+
+    println!("Weak references");
+    println!("user1: {}", Rc::weak_count(&rc_user1));
+    println!("user2: {}", Rc::weak_count(&rc_user2));
+    println!("user3: {}", Rc::weak_count(&rc_user3));
+    println!("user4: {}\n", Rc::weak_count(&rc_user4));
 
     // post data
-    event.post_event(String::from("Intervalo"));
+    quim_event.post_event(String::from("Início aula química"));
+    lib_event.post_event(String::from("Aula de Libras cancelada por falta de professor"));
+    geo_event.post_event(String::from("Aula de geografia cancelada"));
+    drop(lib_event);
+    drop(geo_event);  
 
     // remove user
-    event.unregister(rc_user2);
-    event.unregister(rc_user4);
+    println!("-------------------------------------------");
+    println!("Removendo estudantes da aula de matemática");
+    println!("-------------------------------------------\n");
+    mat_event.unregister(&rc_user1);
+    mat_event.unregister(&rc_user3);
+
+    println!("Weak references");
+    println!("user1: {}", Rc::weak_count(&rc_user1));
+    println!("user2: {}", Rc::weak_count(&rc_user2));
+    println!("user3: {}", Rc::weak_count(&rc_user3));
+    println!("user4: {}\n", Rc::weak_count(&rc_user4));
 
     //post data
-    event.post_event(String::from("Fim da aula"));
+    mat_event.post_event(String::from("Prova de matemática semana que vem"));
+    bio_event.post_event(String::from("Inicio aula de biologia"));
+    fis_event.post_event(String::from("Trabalho de física no email"));
+    hist_event.post_event(String::from("Trabalho de história em grupo"));
 }
