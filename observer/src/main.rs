@@ -28,8 +28,9 @@ impl Event {
 }
 
 impl Subject for Event {
-    fn register(&mut self, observer: Weak<dyn Observer>) {
-        self.subscribers.push(observer);
+    fn register(&mut self, observer: &Rc<dyn Observer>) {
+        let weak_ref = Rc::downgrade(observer);
+        self.subscribers.push(weak_ref);
     }
 
     fn unregister(&mut self, observer: &Rc<dyn Observer>) {
@@ -93,25 +94,25 @@ fn main() {
     
     //subscribing
     //estudante 1 inscrito em Química, Física, Matemática e Libras
-    quim_event.register(Rc::downgrade(&rc_user1));
-    fis_event.register(Rc::downgrade(&rc_user1));
-    mat_event.register(Rc::downgrade(&rc_user1));
-    lib_event.register(Rc::downgrade(&rc_user1));
+    quim_event.register(&rc_user1);
+    fis_event.register(&rc_user1);
+    mat_event.register(&rc_user1);
+    lib_event.register(&rc_user1);
 
     //estudante 2 inscrito em Geografia, História e Libras
-    geo_event.register(Rc::downgrade(&rc_user2));
-    hist_event.register(Rc::downgrade(&rc_user2));
-    lib_event.register(Rc::downgrade(&rc_user2));
+    geo_event.register(&rc_user2);
+    hist_event.register(&rc_user2);
+    lib_event.register(&rc_user2);
 
     //estudante 3 inscrito em Matemática, Geografia e Libras
-    mat_event.register(Rc::downgrade(&rc_user3));
-    geo_event.register(Rc::downgrade(&rc_user3));
-    lib_event.register(Rc::downgrade(&rc_user3));
+    mat_event.register(&rc_user3);
+    geo_event.register(&rc_user3);
+    lib_event.register(&rc_user3);
 
     //estudante 4 inscrito em Biologia, Química e Libras
-    bio_event.register(Rc::downgrade(&rc_user4));
-    quim_event.register(Rc::downgrade(&rc_user4));
-    lib_event.register(Rc::downgrade(&rc_user4));
+    bio_event.register(&rc_user4);
+    quim_event.register(&rc_user4);
+    lib_event.register(&rc_user4);
 
     println!("Weak references");
     println!("user1: {}", Rc::weak_count(&rc_user1));
@@ -144,4 +145,5 @@ fn main() {
     bio_event.post_event(String::from("Inicio aula de biologia"));
     fis_event.post_event(String::from("Trabalho de física no email"));
     hist_event.post_event(String::from("Trabalho de história em grupo"));
+    quim_event.post_event(String::from("Próxima aula de química no laboratório"));
 }
