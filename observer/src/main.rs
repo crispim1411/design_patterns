@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use std::rc::Weak;
 use observer::{Observer, Subject};
 
 struct User {
@@ -15,7 +14,7 @@ impl Observer for User {
 
 struct Event {
     subject: String,
-    subscribers: Vec<Weak<dyn Observer>>
+    subscribers: Vec<Rc<dyn Observer>>
 }
 
 impl Event {
@@ -29,18 +28,15 @@ impl Event {
 
 impl Subject for Event {
     fn register(&mut self, observer: &Rc<dyn Observer>) {
-        let weak_ref = Rc::downgrade(observer);
-        self.subscribers.push(weak_ref);
+        let rc_ref = Rc::clone(&observer);
+        self.subscribers.push(rc_ref);
     }
 
     fn unregister(&mut self, observer: &Rc<dyn Observer>) {
-        if let Some(index) = self.subscribers.iter().position(|item| {
-            let item = item.upgrade().unwrap();
-            Rc::ptr_eq(&observer, &item)
-        }) 
-        {
-            self.subscribers.remove(index);
-        }
+        if let Some(index) = self.subscribers.iter()
+            .position(|item| Rc::ptr_eq(&observer, &item)) {
+                self.subscribers.remove(index);
+            }
     }
 
     fn post_event(&self, data: String) {
@@ -48,9 +44,7 @@ impl Subject for Event {
             0 => println!("Não há estudantes cadastrados em {}\n", self.subject),
             _ => {
                 for subscriber in &self.subscribers {
-                    if let Some(subscriber) = subscriber.upgrade() {
-                        subscriber.notify(&data);
-                    }
+                    subscriber.notify(&data);
                 }
             }
         }
@@ -114,11 +108,11 @@ fn main() {
     quim_event.register(&rc_user4);
     lib_event.register(&rc_user4);
 
-    println!("Weak references");
-    println!("user1: {}", Rc::weak_count(&rc_user1));
-    println!("user2: {}", Rc::weak_count(&rc_user2));
-    println!("user3: {}", Rc::weak_count(&rc_user3));
-    println!("user4: {}\n", Rc::weak_count(&rc_user4));
+    println!("Strong references");
+    println!("user1: {}", Rc::strong_count(&rc_user1));
+    println!("user2: {}", Rc::strong_count(&rc_user2));
+    println!("user3: {}", Rc::strong_count(&rc_user3));
+    println!("user4: {}\n", Rc::strong_count(&rc_user4));
 
     // post data
     quim_event.post_event(String::from("Início aula química"));
@@ -134,11 +128,11 @@ fn main() {
     mat_event.unregister(&rc_user1);
     mat_event.unregister(&rc_user3);
 
-    println!("Weak references");
-    println!("user1: {}", Rc::weak_count(&rc_user1));
-    println!("user2: {}", Rc::weak_count(&rc_user2));
-    println!("user3: {}", Rc::weak_count(&rc_user3));
-    println!("user4: {}\n", Rc::weak_count(&rc_user4));
+    println!("Strong references");
+    println!("user1: {}", Rc::strong_count(&rc_user1));
+    println!("user2: {}", Rc::strong_count(&rc_user2));
+    println!("user3: {}", Rc::strong_count(&rc_user3));
+    println!("user4: {}\n", Rc::strong_count(&rc_user4));
 
     //post data
     mat_event.post_event(String::from("Prova de matemática semana que vem"));
