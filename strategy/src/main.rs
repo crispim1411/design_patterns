@@ -2,10 +2,37 @@ use rand::{thread_rng, Rng};
 use rand::seq::SliceRandom;
 use rand::distributions::Alphanumeric;
 
-// trait Strategy {
-//     type T;
-//     fn algorithm(data: Self::T) -> Self::T;
-// }
+trait TicketOrderingStrategy {
+    fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket>;
+}
+
+struct FIFOOrderingStrategy;
+
+impl TicketOrderingStrategy for FIFOOrderingStrategy {
+    fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
+        return list.clone();
+    }
+}
+
+struct FILOOrderingStrategy;
+
+impl TicketOrderingStrategy for FILOOrderingStrategy {
+    fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
+        list.clone().reverse();
+        return list.to_owned();
+    }
+}
+
+struct RandomOrderingStrategy;
+
+impl TicketOrderingStrategy for RandomOrderingStrategy {
+    fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
+        let mut copy_list = list.clone();
+        let mut rng = rand::thread_rng();
+        copy_list.shuffle(&mut rng);
+        return copy_list
+    }
+}
 
 #[derive(Clone)]
 struct SupportTicket {
@@ -39,32 +66,16 @@ impl CustomerSupport {
         self.tickets.push(SupportTicket::new(customer, issue))
     }
 
-    fn process_tickets(&self, processing_strategy: &str) {
-        if self.tickets.len() == 0 {
+    fn process_tickets(&self, processing_strategy: Box<dyn TicketOrderingStrategy>) {
+        let ticked_list = processing_strategy.create_ordering(&self.tickets);
+
+        if ticked_list.len() == 0 {
             println!("There are no tickets to process. Well done!");
             return;
         }
-        
-        match processing_strategy {
-            "fifo" => {
-                for ticket in &self.tickets {
-                    self.process_ticket(&ticket)
-                }
-            },
-            "filo" => {
-                for ticket in self.tickets.iter().rev() {
-                    self.process_ticket(&ticket)
-                }
-            },
-            "random" => {
-                let mut rng = rand::thread_rng();
-                let mut copy_list = self.tickets.clone();
-                copy_list.shuffle(&mut rng);
-                for ticket in copy_list {
-                    self.process_ticket(&ticket)
-                }
-            },
-            _ => println!("That ordenation isn't listed on system.")
+
+        for ticket in ticked_list {
+            self.process_ticket(&ticket);
         }
     }
 
@@ -108,5 +119,5 @@ fn main() {
     );
 
     // process the tickets
-    app.process_tickets("random")
+    app.process_tickets(Box::new(RandomOrderingStrategy));
 }
