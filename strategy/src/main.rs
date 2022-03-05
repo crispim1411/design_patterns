@@ -34,6 +34,14 @@ impl TicketOrderingStrategy for RandomOrderingStrategy {
     }
 }
 
+struct BlackHoleOrderingStrategy;
+
+impl TicketOrderingStrategy for BlackHoleOrderingStrategy {
+    fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
+        return vec![];
+    }
+}
+
 #[derive(Clone)]
 struct SupportTicket {
     id: String,
@@ -119,5 +127,5 @@ fn main() {
     );
 
     // process the tickets
-    app.process_tickets(Box::new(RandomOrderingStrategy));
+    app.process_tickets(Box::new(BlackHoleOrderingStrategy));
 }
