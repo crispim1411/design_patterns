@@ -25,16 +25,12 @@ impl SupportTicket {
 }
 
 struct CustomerSupport {
-    tickets: Vec<SupportTicket>,
-    processing_strategy: &'static str,
+    tickets: Vec<SupportTicket>
 }
 
 impl CustomerSupport {
-    fn new(processing_strategy: &'static str) -> CustomerSupport {
-        CustomerSupport {
-            tickets: vec![],
-            processing_strategy
-        }
+    fn new() -> CustomerSupport {
+        CustomerSupport { tickets: vec![] }
     }
 }
 
@@ -43,13 +39,13 @@ impl CustomerSupport {
         self.tickets.push(SupportTicket::new(customer, issue))
     }
 
-    fn process_tickets(&self) {
+    fn process_tickets(&self, processing_strategy: &str) {
         if self.tickets.len() == 0 {
             println!("There are no tickets to process. Well done!");
             return;
         }
         
-        match self.processing_strategy {
+        match processing_strategy {
             "fifo" => {
                 for ticket in &self.tickets {
                     self.process_ticket(&ticket)
@@ -91,7 +87,7 @@ fn generate_id(length: usize) -> String {
 
 fn main() {
     // create the application
-    let mut app = CustomerSupport::new("random");
+    let mut app = CustomerSupport::new();
     
     // register a few tickets
     app.create_ticket(
@@ -112,5 +108,5 @@ fn main() {
     );
 
     // process the tickets
-    app.process_tickets()
+    app.process_tickets("random")
 }
