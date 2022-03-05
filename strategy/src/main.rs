@@ -7,7 +7,6 @@ trait TicketOrderingStrategy {
 }
 
 struct FIFOOrderingStrategy;
-
 impl TicketOrderingStrategy for FIFOOrderingStrategy {
     fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
         return list.clone();
@@ -15,7 +14,6 @@ impl TicketOrderingStrategy for FIFOOrderingStrategy {
 }
 
 struct FILOOrderingStrategy;
-
 impl TicketOrderingStrategy for FILOOrderingStrategy {
     fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
         list.clone().reverse();
@@ -24,7 +22,6 @@ impl TicketOrderingStrategy for FILOOrderingStrategy {
 }
 
 struct RandomOrderingStrategy;
-
 impl TicketOrderingStrategy for RandomOrderingStrategy {
     fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
         let mut copy_list = list.clone();
@@ -35,7 +32,6 @@ impl TicketOrderingStrategy for RandomOrderingStrategy {
 }
 
 struct BlackHoleOrderingStrategy;
-
 impl TicketOrderingStrategy for BlackHoleOrderingStrategy {
     fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket> {
         return vec![];
@@ -74,7 +70,7 @@ impl CustomerSupport {
         self.tickets.push(SupportTicket::new(customer, issue))
     }
 
-    fn process_tickets(&self, processing_strategy: Box<dyn TicketOrderingStrategy>) {
+    fn process_tickets(&self, processing_strategy: impl TicketOrderingStrategy) {
         let ticked_list = processing_strategy.create_ordering(&self.tickets);
 
         if ticked_list.len() == 0 {
@@ -127,5 +123,5 @@ fn main() {
     );
 
     // process the tickets
-    app.process_tickets(Box::new(BlackHoleOrderingStrategy));
+    app.process_tickets(RandomOrderingStrategy);
 }
