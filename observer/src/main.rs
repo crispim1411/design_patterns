@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use observer::{User, Event};
-use observer::interfaces::{Observer, Subject};
+use observer::{Observer, Subject};
 
 fn main() {
     // creating users

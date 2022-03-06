@@ -1,7 +1,14 @@
-pub mod interfaces;
-
 use std::rc::Rc;
-use crate::interfaces::{Observer, Subject};
+
+pub trait Observer {
+    fn notify(&self, event: &String);
+}
+
+pub trait Subject {
+    fn register(&mut self, observer: &Rc<dyn Observer>);
+    fn unregister(&mut self, observer: &Rc<dyn Observer>);
+    fn post_event(&self, data: String);
+}
 
 pub struct User {
     pub name: String,
