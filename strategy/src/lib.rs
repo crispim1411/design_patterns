@@ -1,8 +1,25 @@
-mod ticket;
 pub mod ordering;
 
-use crate::ticket::SupportTicket;
+use rand::{thread_rng, Rng};
+use rand::distributions::Alphanumeric;
 use crate::ordering::TicketOrderingStrategy;
+
+#[derive(Clone)]
+pub struct SupportTicket {
+    pub id: String,
+    pub customer: String,
+    pub issue: String,
+}
+
+impl SupportTicket {
+    pub fn new(customer: String, issue: String) -> SupportTicket {
+        SupportTicket {
+            id: generate_id(8),
+            customer,
+            issue
+        }
+    }
+}
 
 pub struct CustomerSupport {
     tickets: Vec<SupportTicket>
@@ -39,4 +56,12 @@ impl CustomerSupport {
         println!("Issue: {}", ticket.issue);
         println!("==================================");
     }
+}
+
+fn generate_id(length: usize) -> String {
+    thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .map(char::from)
+        .collect()
 }

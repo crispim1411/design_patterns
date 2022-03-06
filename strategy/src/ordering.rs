@@ -1,5 +1,5 @@
 use rand::prelude::SliceRandom;
-use crate::ticket::SupportTicket;
+use crate::SupportTicket;
 
 pub trait TicketOrderingStrategy {
     fn create_ordering(&self, list: &Vec<SupportTicket>) -> Vec<SupportTicket>;
