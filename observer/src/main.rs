@@ -1,55 +1,6 @@
 use std::rc::Rc;
-use observer::{Observer, Subject};
-
-struct User {
-    name: String,
-    email: String
-}
-
-impl Observer for User {
-    fn notify(&self, event: &String) {
-        println!("{} recebeu: {}\n", self.name, event);
-    }
-}
-
-struct Event {
-    subject: String,
-    subscribers: Vec<Rc<dyn Observer>>
-}
-
-impl Event {
-    fn new(subject: String) -> Event {
-        Event {
-            subject,
-            subscribers: vec![]
-        }
-    }
-}
-
-impl Subject for Event {
-    fn register(&mut self, observer: &Rc<dyn Observer>) {
-        let rc_ref = Rc::clone(&observer);
-        self.subscribers.push(rc_ref);
-    }
-
-    fn unregister(&mut self, observer: &Rc<dyn Observer>) {
-        if let Some(index) = self.subscribers.iter()
-            .position(|item| Rc::ptr_eq(&observer, &item)) {
-                self.subscribers.remove(index);
-            }
-    }
-
-    fn post_event(&self, data: String) {
-        match self.subscribers.len() {
-            0 => println!("Não há estudantes cadastrados em {}\n", self.subject),
-            _ => {
-                for subscriber in &self.subscribers {
-                    subscriber.notify(&data);
-                }
-            }
-        }
-    }
-}
+use observer::{User, Event};
+use observer::interfaces::{Observer, Subject};
 
 fn main() {
     // creating users

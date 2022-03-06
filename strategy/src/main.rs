@@ -1,4 +1,4 @@
-use strategy::customer::CustomerSupport;
+use strategy::CustomerSupport;
 use strategy::ordering::*;
 
 fn main() {
@@ -24,5 +24,5 @@ fn main() {
     );
 
     // process the tickets
-    app.process_tickets(BlackHoleOrderingStrategy);
+    app.process_tickets(RandomOrderingStrategy);
 }
